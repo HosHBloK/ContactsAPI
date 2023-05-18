@@ -94,7 +94,7 @@ public class PeopleControllerTest {
 	@Test
 	public void addPersonDetailedInfo_returnsOk_whenBindingResultHasNoErrors() throws Exception {
 
-		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", Date.from(Instant.now()));
+		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", "2000-01-01");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
@@ -283,7 +283,7 @@ public class PeopleControllerTest {
 	@Test
 	public void getPersonDetailedInfo_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", Date.from(Instant.now()));
+		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", "2000-01-01");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 		Mockito.when(peopleService.convertToPersonDetailedInfoDTO(any(Person.class))).thenReturn(dto);
@@ -386,7 +386,7 @@ public class PeopleControllerTest {
 	@Test
 	public void getPeopleDetailedInfo_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", Date.from(Instant.now()));
+		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", "2000-01-01");
 		List<PersonDetailedInfoDTO> expectedList = Arrays.asList(dto);
 
 		Mockito.when(peopleService.findAll()).thenReturn(List.of(new Person()));
@@ -525,7 +525,7 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePersonDetailedInfo_returnsOk_whenBindingResultHasNoErrors() throws Exception {
 
-		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", Date.from(Instant.now()));
+		PersonDetailedInfoDTO dto = new PersonDetailedInfoDTO("abc", "abc", "2000-01-01");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 

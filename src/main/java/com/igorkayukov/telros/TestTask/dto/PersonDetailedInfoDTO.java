@@ -1,11 +1,8 @@
 package com.igorkayukov.telros.TestTask.dto;
 
-import java.util.Date;
-
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
-import org.springframework.format.annotation.DateTimeFormat;
 
 public class PersonDetailedInfoDTO {
 
@@ -17,14 +14,14 @@ public class PersonDetailedInfoDTO {
 	@NotNull(message = "Patronymic should not be empty")
 	private String patronymic;
 
-	@DateTimeFormat(pattern = "yyyy-MM-dd")
+	@Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Wrong date format, use 2000-12-31")
 	@NotNull(message = "DateOfBirth should not be empty")
-	private Date dateOfBirth;
+	private String dateOfBirth;
 
 	public PersonDetailedInfoDTO() {
 	}
 
-	public PersonDetailedInfoDTO(String surname, String patronymic, Date dateOfBirth) {
+	public PersonDetailedInfoDTO(String surname, String patronymic, String dateOfBirth) {
 		this.surname = surname;
 		this.patronymic = patronymic;
 		this.dateOfBirth = dateOfBirth;
@@ -45,12 +42,12 @@ public class PersonDetailedInfoDTO {
 	public void setPatronymic(String patronymic) {
 		this.patronymic = patronymic;
 	}
-
-	public Date getDateOfBirth() {
+	
+	public String getDateOfBirth() {
 		return dateOfBirth;
 	}
 
-	public void setDateOfBirth(Date dateOfBirth) {
+	public void setDateOfBirth(String dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
 	}
 
