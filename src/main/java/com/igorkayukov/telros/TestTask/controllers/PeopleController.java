@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.igorkayukov.telros.TestTask.dto.PersonContactInfoDTO;
@@ -38,6 +40,7 @@ import com.igorkayukov.telros.TestTask.validators.PersonContactInfoDTOValidator;
 
 @RestController
 @RequestMapping("/people")
+@RestControllerAdvice
 public class PeopleController {
 
 	private final PeopleService peopleService;
@@ -96,10 +99,6 @@ public class PeopleController {
 
 		if (file.getSize() == 0) {
 			throw new NotValidPersonPhotoException("Photo file should not be empty!");
-		}
-
-		if (file.getSize() > 5 * 1024 * 1024) {
-			throw new NotValidPersonPhotoException("File size should not exceed 5MB!");
 		}
 
 		if (!file.getContentType().equals("image/jpeg") && !file.getContentType().equals("image/png")) {
@@ -247,10 +246,6 @@ public class PeopleController {
 		if (file.getSize() == 0) {
 			throw new NotValidPersonPhotoException("Photo file should not be empty!");
 		}
-		
-		if (file.getSize() > 5 * 1024 * 1024) {
-			throw new NotValidPersonPhotoException("File size should not exceed 5MB!");
-		}
 
 		if (!file.getContentType().equals("image/jpeg") && !file.getContentType().equals("image/png")) {
 			throw new NotValidPersonPhotoException("Only .jpeg and .png files are allowed!");
@@ -302,42 +297,49 @@ public class PeopleController {
 	}
 
 	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleCreateException(PersonNotFoundException ex) {
+	private ResponseEntity<ErrorResponse> handleException(PersonNotFoundException ex) {
 
 		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleCreateException(PersonPhotoNotFoundException ex) {
+	private ResponseEntity<ErrorResponse> handleException(PersonPhotoNotFoundException ex) {
 
 		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleCreateException(NotValidPersonContactInfoDTOException ex) {
+	private ResponseEntity<ErrorResponse> handleException(NotValidPersonContactInfoDTOException ex) {
 
 		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleCreateException(NotValidPersonDetailedInfoDTOException ex) {
+	private ResponseEntity<ErrorResponse> handleException(NotValidPersonDetailedInfoDTOException ex) {
 
 		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleCreateException(NotValidPersonPhotoException ex) {
+	private ResponseEntity<ErrorResponse> handleException(NotValidPersonPhotoException ex) {
 
+		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(SizeLimitExceededException.class)
+	private ResponseEntity<ErrorResponse> handleException(SizeLimitExceededException ex) {
+		
 		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleCreateException(IOException ex) {
+	private ResponseEntity<ErrorResponse> handleException(IOException ex) {
 
 		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

@@ -191,22 +191,6 @@ public class PeopleControllerTest {
 	}
 
 	@Test
-	public void addPersonPhoto_returnsErrorResponse_whenFileSizeAbove5MB() throws Exception {
-
-		MockMultipartFile file = new MockMultipartFile("file", "abc.png", "image/png", new byte[6 * 1024 * 1024]);
-
-		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
-
-		//@formatter:off 
-		mockMvc.perform(MockMvcRequestBuilders.multipart("/people/add/photo/1")
-			.file(file))
-		.andExpect(status().isBadRequest())
-		.andExpect(jsonPath("$.message").exists())
-		.andExpect(jsonPath("$.timestamp").exists());
-		//@formatter:on
-	}
-
-	@Test
 	public void addPersonPhoto_returnsErrorResponse_whenFileHaveWrongContentType() throws Exception {
 
 		MockMultipartFile file = new MockMultipartFile("file", "abc.png", "", new byte[1]);
@@ -489,22 +473,6 @@ public class PeopleControllerTest {
         .file(file))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errors").doesNotExist());
-		//@formatter:on
-	}
-
-	@Test
-	public void updatePersonPhoto_returnsErrorResponse_whenFileSizeAbove5MB() throws Exception {
-
-		MockMultipartFile file = new MockMultipartFile("file", "abc.png", "image/png", new byte[6 * 1024 * 1024]);
-
-		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
-
-		//@formatter:off 
-		mockMvc.perform(MockMvcRequestBuilders.multipart("/people/update/photo/1")
-			.file(file))
-		.andExpect(status().isBadRequest())
-		.andExpect(jsonPath("$.message").exists())
-		.andExpect(jsonPath("$.timestamp").exists());
 		//@formatter:on
 	}
 
