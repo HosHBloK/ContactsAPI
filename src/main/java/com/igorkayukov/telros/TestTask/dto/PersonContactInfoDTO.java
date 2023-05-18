@@ -12,10 +12,12 @@ public class PersonContactInfoDTO {
 	private String name;
 
 	@Email(message = "Wrong email format!")
+	@Size(min = 1, max = 30, message = "Email should be between 1 and 30 characters!")
 	@NotNull(message = "Email should not be empty")
 	private String email;
 
 	@Pattern(regexp = "^[0-9+-]+$", message = "Only numbers and '+' or '-' characters are allowed in phone number!")
+	@Size(min = 1, max = 30, message = "PhoneNumber should be between 1 and 30 characters!")
 	@NotNull(message = "PhoneNumber should not be empty")
 	private String phoneNumber;
 
