@@ -4,29 +4,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import com.igorkayukov.telros.TestTask.dto.AuthDTO;
+import com.igorkayukov.telros.TestTask.dto.Auth.Request.LoginRequest;
 import com.igorkayukov.telros.TestTask.repositories.UserRepository;
 
 @Component
-public class AuthDTOValidator implements Validator {
+public class AuthRequestValidator implements Validator {
 
 	private final UserRepository userRepository;
 
-	public AuthDTOValidator(UserRepository userRepository) {
+	public AuthRequestValidator(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return AuthDTO.class.equals(clazz);
+		return LoginRequest.class.equals(clazz);
 	}
 
 	@Override
 	public void validate(Object target, Errors errors) {
 
-		AuthDTO authDTO = (AuthDTO) target;
+		LoginRequest authRequest = (LoginRequest) target;
 
-		if (userRepository.findByUsername(authDTO.getUsername()).isEmpty()) {
+		if (userRepository.findByUsername(authRequest.getUsername()).isEmpty()) {
 			errors.rejectValue("username", "", "User not found!");
 		}
 	}

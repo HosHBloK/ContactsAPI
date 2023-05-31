@@ -1,11 +1,11 @@
-package com.igorkayukov.telros.TestTask.dto;
+package com.igorkayukov.telros.TestTask.dto.Person.Request;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-public class PersonContactInfoDTO {
+public class PersonContactInfoRequest {
 
 	@Size(min = 1, max = 30, message = "Name should be between 1 and 30 characters!")
 	@NotNull(message = "Name should not be empty")
@@ -21,10 +21,10 @@ public class PersonContactInfoDTO {
 	@NotNull(message = "PhoneNumber should not be empty")
 	private String phoneNumber;
 
-	public PersonContactInfoDTO() {
+	public PersonContactInfoRequest() {
 	}
 
-	public PersonContactInfoDTO(String name, String email, String phoneNumber) {
+	public PersonContactInfoRequest(String name, String email, String phoneNumber) {
 		this.name = name;
 		this.email = email;
 		this.phoneNumber = phoneNumber;
@@ -56,6 +56,6 @@ public class PersonContactInfoDTO {
 
 	@Override
 	public String toString() {
-		return "PersonContactInfoDTO [name=" + name + ", email=" + email + ", phoneNumber=" + phoneNumber + "]";
+		return "PersonContactInfoResponse [name=" + name + ", email=" + email + ", phoneNumber=" + phoneNumber + "]";
 	}
 }

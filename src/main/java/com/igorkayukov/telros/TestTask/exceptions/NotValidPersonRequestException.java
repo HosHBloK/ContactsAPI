@@ -1,10 +1,10 @@
 package com.igorkayukov.telros.TestTask.exceptions;
 
-public class NotValidPersonContactInfoDTOException extends RuntimeException {
+public class NotValidPersonRequestException extends RuntimeException {
 
 	private static final long serialVersionUID = 5203320720124498442L;
 
-	public NotValidPersonContactInfoDTOException(String msg) {
+	public NotValidPersonRequestException(String msg) {
 		super(msg);
 	}
 }

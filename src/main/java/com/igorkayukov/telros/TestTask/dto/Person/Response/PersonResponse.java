@@ -1,8 +1,8 @@
-package com.igorkayukov.telros.TestTask.dto;
+package com.igorkayukov.telros.TestTask.dto.Person.Response;
 
 import java.util.Date;
 
-public class PersonDTO {
+public class PersonResponse {
 	
 	private int id;
 	
@@ -16,9 +16,9 @@ public class PersonDTO {
 
 	private String email;
 	
-	public PersonDTO() {}
+	public PersonResponse() {}
 	
-	public PersonDTO(int id, String name, String surname, String patronymic, Date dateOfBirth, String email,
+	public PersonResponse(int id, String name, String surname, String patronymic, Date dateOfBirth, String email,
 		String phoneNumber) {
 		this.id = id;
 		this.name = name;
@@ -89,7 +89,7 @@ public class PersonDTO {
 
 	@Override
 	public String toString() {
-		return "PersonDTO [id=" + id + ", name=" + name + ", surname=" + surname + ", patronymic=" + patronymic
+		return "PersonResponse [id=" + id + ", name=" + name + ", surname=" + surname + ", patronymic=" + patronymic
 			+ ", dateOfBirth=" + dateOfBirth + ", email=" + email + ", phoneNumber=" + phoneNumber + "]";
 	}
 }

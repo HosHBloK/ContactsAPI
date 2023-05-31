@@ -1,9 +1,9 @@
-package com.igorkayukov.telros.TestTask.dto;
+package com.igorkayukov.telros.TestTask.dto.Auth.Request;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class AuthDTO {
+public class LoginRequest {
 
 	@Size(min = 3, max = 15, message = "Username should be between 3 and 15 characters!")
 	@NotNull(message = "Username should not be empty")

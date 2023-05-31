@@ -1,10 +1,10 @@
-package com.igorkayukov.telros.TestTask.dto;
+package com.igorkayukov.telros.TestTask.dto.Person.Request;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-public class PersonDetailedInfoDTO {
+public class PersonDetailedInfoRequest {
 
 	@Size(min = 1, max = 30, message = "Surname should be between 1 and 30 characters!")
 	@NotNull(message = "Surname should not be empty")
@@ -18,10 +18,10 @@ public class PersonDetailedInfoDTO {
 	@NotNull(message = "DateOfBirth should not be empty")
 	private String dateOfBirth;
 
-	public PersonDetailedInfoDTO() {
+	public PersonDetailedInfoRequest() {
 	}
 
-	public PersonDetailedInfoDTO(String surname, String patronymic, String dateOfBirth) {
+	public PersonDetailedInfoRequest(String surname, String patronymic, String dateOfBirth) {
 		this.surname = surname;
 		this.patronymic = patronymic;
 		this.dateOfBirth = dateOfBirth;
@@ -53,7 +53,7 @@ public class PersonDetailedInfoDTO {
 
 	@Override
 	public String toString() {
-		return "PersonDetailedInfoDTO [surname=" + surname + ", patronymic=" + patronymic + ", dateOfBirth="
+		return "PersonDetailedInfoResponse [surname=" + surname + ", patronymic=" + patronymic + ", dateOfBirth="
 			+ dateOfBirth + "]";
 	}
 }

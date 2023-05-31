@@ -1,4 +1,4 @@
-package com.igorkayukov.telros.TestTask.util;
+package com.igorkayukov.telros.TestTask.errors;
 
 import java.util.List;
 

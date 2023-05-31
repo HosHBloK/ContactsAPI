@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -13,19 +12,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.igorkayukov.telros.TestTask.errors.ExceptionHandlerFilter;
 import com.igorkayukov.telros.TestTask.services.CustomUserDetailsService;
 
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private final CustomUserDetailsService userDetailsService;
 	private final JWTFilter jwtFilter;
+	private final ExceptionHandlerFilter exFilter;
 
 	@Autowired
-	public SecurityConfig(CustomUserDetailsService userDetailsService, JWTFilter jwtFilter) {
+	public SecurityConfig(CustomUserDetailsService userDetailsService, JWTFilter jwtFilter,
+		ExceptionHandlerFilter exFilter) {
 		this.userDetailsService = userDetailsService;
 		this.jwtFilter = jwtFilter;
+		this.exFilter = exFilter;
 	}
 
 	@Override
@@ -34,13 +36,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
             .csrf().disable()
             .authorizeRequests()
-            .antMatchers("/auth/login").permitAll()
+            .antMatchers("/auth/login", "/auth/refresh_tokens").permitAll()
             .anyRequest().hasRole("ADMIN")
             .and()
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         //@formatter:on
-
+        
+		http.addFilterBefore(exFilter, UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 

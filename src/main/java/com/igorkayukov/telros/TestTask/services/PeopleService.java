@@ -1,133 +1,47 @@
 package com.igorkayukov.telros.TestTask.services;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.igorkayukov.telros.TestTask.dto.PersonContactInfoDTO;
-import com.igorkayukov.telros.TestTask.dto.PersonDTO;
-import com.igorkayukov.telros.TestTask.dto.PersonDetailedInfoDTO;
+import com.igorkayukov.telros.TestTask.dto.Person.Request.PersonContactInfoRequest;
+import com.igorkayukov.telros.TestTask.dto.Person.Request.PersonDetailedInfoRequest;
+import com.igorkayukov.telros.TestTask.dto.Person.Response.PersonContactInfoResponse;
+import com.igorkayukov.telros.TestTask.dto.Person.Response.PersonDetailedInfoResponse;
+import com.igorkayukov.telros.TestTask.dto.Person.Response.PersonResponse;
 import com.igorkayukov.telros.TestTask.models.Person;
-import com.igorkayukov.telros.TestTask.repositories.PeopleRepository;
 
-@Service
-@Transactional(readOnly = true)
-public class PeopleService {
+public interface PeopleService {
 
-	private final PeopleRepository peopleRepository;
-	private final ModelMapper modelMapper;
+	Person findOne(int id);
 
-	public PeopleService(PeopleRepository peopleRepository, ModelMapper modelMapper) {
-		this.peopleRepository = peopleRepository;
-		this.modelMapper = modelMapper;
-	}
+	PersonContactInfoResponse getPersonContactInfoResponse(int id);
 
-	public Person findOne(int id) {
-		Optional<Person> person = peopleRepository.findById(id);
-		return person.orElse(null);
-	}
+	PersonDetailedInfoResponse getPersonDetailedInfoResponse(int id);
 
-	public List<Person> findAll() {
-		return peopleRepository.findAll();
-	}
+	PersonResponse getPersonResponse(int id);
 
-	public byte[] getPhoto(int id) {
-		return findOne(id).getPhoto();
-	}
-	
-	@Transactional
-	public void addPersonPhoto(byte[] fileBytes, String fileName, int id) {
-		
-		Person person = findOne(id);
-		person.setPhoto(fileBytes);
-		person.setPhotoName(fileName);
-		
-		peopleRepository.save(person);
-	}
+	List<PersonResponse> getPersonResponseList();
 
-	@Transactional
-	public void save(Person person) {
+	List<PersonContactInfoResponse> getPersonContactInfoResponseList();
 
-		peopleRepository.save(person);
-	}
+	List<PersonDetailedInfoResponse> getPersonDetailedInfoResponseList();
 
-	@Transactional
-	public void updateContactInfo(int id, Person updatedPerson) {
+	List<Person> findAll();
 
-		Person person = findOne(id);
-		person.setName(updatedPerson.getName());
-		person.setEmail(updatedPerson.getEmail());
-		person.setPhoneNumber(updatedPerson.getPhoneNumber());
-		peopleRepository.save(person);
-	}
-	
-	@Transactional
-	public void updateDetailedInfo(int id, Person updatedPerson) {
-		
-		Person person = findOne(id);
-		person.setSurname(updatedPerson.getSurname());
-		person.setPatronymic(updatedPerson.getPatronymic());
-		person.setDateOfBirth(updatedPerson.getDateOfBirth());
-		
-		peopleRepository.save(person);
-	}
+	byte[] getPhoto(int id);
 
-	@Transactional
-	public void delete(int id) {
+	void addPersonPhoto(byte[] fileBytes, String fileName, int id);
 
-		peopleRepository.deleteById(id);
-	}
+	void save(PersonContactInfoRequest request);
 
-	@Transactional
-	public void deletePhoto(int id) {
+	void save(PersonDetailedInfoRequest request);
 
-		Person person = findOne(id);
-		person.setPhoto(null);
-		person.setPhotoName(null);
-		
-		peopleRepository.save(person);
-	}
+	void updateContactInfo(int id, PersonContactInfoRequest request);
 
-	@Transactional
-	public void deleteDetailedInfo(int id) {
+	void updateDetailedInfo(int id, PersonDetailedInfoRequest request);
 
-		Person person = findOne(id);
-		clearDetailedInfo(person);
-		peopleRepository.save(person);
-	}
+	void delete(int id);
 
-	private void clearDetailedInfo(Person person) {
+	void deletePhoto(int id);
 
-		person.setSurname(null);
-		person.setPatronymic(null);
-		person.setDateOfBirth(null);
-	}
-
-	public PersonDTO convertToPersonDTO(Person person) {
-
-		return modelMapper.map(person, PersonDTO.class);
-	}
-
-	public PersonContactInfoDTO convertToPersonContactInfoDTO(Person person) {
-
-		return modelMapper.map(person, PersonContactInfoDTO.class);
-	}
-
-	public PersonDetailedInfoDTO convertToPersonDetailedInfoDTO(Person person) {
-
-		return modelMapper.map(person, PersonDetailedInfoDTO.class);
-	}
-
-	public Person convertToPerson(PersonContactInfoDTO personContactInfoDTO) {
-
-		return modelMapper.map(personContactInfoDTO, Person.class);
-	}
-
-	public Person convertToPerson(PersonDetailedInfoDTO personDetailedInfoDTO) {
-
-		return modelMapper.map(personDetailedInfoDTO, Person.class);
-	}
+	void deleteDetailedInfo(int id);
 }

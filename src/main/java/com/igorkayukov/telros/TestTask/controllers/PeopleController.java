@@ -2,11 +2,9 @@ package com.igorkayukov.telros.TestTask.controllers;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,69 +19,63 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.igorkayukov.telros.TestTask.dto.PersonContactInfoDTO;
-import com.igorkayukov.telros.TestTask.dto.PersonDTO;
-import com.igorkayukov.telros.TestTask.dto.PersonDetailedInfoDTO;
-import com.igorkayukov.telros.TestTask.exceptions.NotValidPersonContactInfoDTOException;
-import com.igorkayukov.telros.TestTask.exceptions.NotValidPersonDetailedInfoDTOException;
-import com.igorkayukov.telros.TestTask.exceptions.NotValidPersonPhotoException;
+import com.igorkayukov.telros.TestTask.dto.Person.Request.PersonContactInfoRequest;
+import com.igorkayukov.telros.TestTask.dto.Person.Request.PersonDetailedInfoRequest;
+import com.igorkayukov.telros.TestTask.dto.Person.Response.PersonContactInfoResponse;
+import com.igorkayukov.telros.TestTask.dto.Person.Response.PersonDetailedInfoResponse;
+import com.igorkayukov.telros.TestTask.dto.Person.Response.PersonResponse;
+import com.igorkayukov.telros.TestTask.errors.ErrorMessage;
+import com.igorkayukov.telros.TestTask.exceptions.NotValidPersonRequestException;
 import com.igorkayukov.telros.TestTask.exceptions.PersonNotFoundException;
 import com.igorkayukov.telros.TestTask.exceptions.PersonPhotoNotFoundException;
 import com.igorkayukov.telros.TestTask.services.PeopleService;
-import com.igorkayukov.telros.TestTask.util.ErrorMessage;
-import com.igorkayukov.telros.TestTask.util.ErrorResponse;
-import com.igorkayukov.telros.TestTask.validators.PersonContactInfoDTOValidator;
+import com.igorkayukov.telros.TestTask.validators.PersonContactInfoRequestValidator;
 
 @RestController
 @RequestMapping("/people")
-@RestControllerAdvice
 public class PeopleController {
 
 	private final PeopleService peopleService;
-	private final PersonContactInfoDTOValidator personContactInfoDTOValidator;
+	private final PersonContactInfoRequestValidator personContactInfoDTOValidator;
 
 	@Autowired
-	public PeopleController(PeopleService peopleService, PersonContactInfoDTOValidator personContactInfoDTOValidator) {
+	public PeopleController(PeopleService peopleService, PersonContactInfoRequestValidator personContactInfoDTOValidator) {
 		this.peopleService = peopleService;
 		this.personContactInfoDTOValidator = personContactInfoDTOValidator;
 	}
-	
-	
 
 	// CREATE METHODS
 
 	@PostMapping("/add")
-	public ResponseEntity<HttpStatus> addPerson(@RequestBody @Valid PersonContactInfoDTO personContactInfoDTO,
+	public ResponseEntity<HttpStatus> addPerson(@RequestBody @Valid PersonContactInfoRequest request,
 		BindingResult bindingResult) {
 
-		personContactInfoDTOValidator.validate(personContactInfoDTO, bindingResult);
+		personContactInfoDTOValidator.validate(request, bindingResult);
 
 		if (bindingResult.hasErrors()) {
-			throw new NotValidPersonContactInfoDTOException(ErrorMessage.getErrorMessage(bindingResult));
+			throw new NotValidPersonRequestException(ErrorMessage.getErrorMessage(bindingResult));
 		}
 
-		peopleService.save(peopleService.convertToPerson(personContactInfoDTO));
+		peopleService.save(request);
 
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
 
 	@PostMapping("/add/detailed_info/{id}")
-	public ResponseEntity<HttpStatus> addPersonDetailedInfo(
-		@RequestBody @Valid PersonDetailedInfoDTO personDetailedInfoDTO, BindingResult bindingResult,
-		@PathVariable("id") int id) {
+	public ResponseEntity<HttpStatus> addPersonDetailedInfo(@RequestBody @Valid PersonDetailedInfoRequest request,
+		BindingResult bindingResult, @PathVariable("id") int id) {
 
 		if (peopleService.findOne(id) == null) {
 			throw new PersonNotFoundException("Person with this id is not found!");
 		}
 
 		if (bindingResult.hasErrors()) {
-			throw new NotValidPersonDetailedInfoDTOException(ErrorMessage.getErrorMessage(bindingResult));
+			throw new NotValidPersonRequestException(ErrorMessage.getErrorMessage(bindingResult));
 		}
 
-		peopleService.updateDetailedInfo(id, peopleService.convertToPerson(personDetailedInfoDTO));
+		peopleService.updateDetailedInfo(id, request);
 
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
@@ -98,11 +89,11 @@ public class PeopleController {
 		}
 
 		if (file.getSize() == 0) {
-			throw new NotValidPersonPhotoException("Photo file should not be empty!");
+			throw new NotValidPersonRequestException("Photo file should not be empty!");
 		}
 
 		if (!file.getContentType().equals("image/jpeg") && !file.getContentType().equals("image/png")) {
-			throw new NotValidPersonPhotoException("Only .jpeg and .png files are allowed!");
+			throw new NotValidPersonRequestException("Only .jpeg and .png files are allowed!");
 		}
 
 		peopleService.addPersonPhoto(file.getBytes(), file.getOriginalFilename(), id);
@@ -110,28 +101,26 @@ public class PeopleController {
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
 
-	
-	
 	// READ METHODS
 
 	@PostMapping("/get/contact_info/{id}")
-	public PersonContactInfoDTO getPersonContactInfo(@PathVariable("id") int id) {
+	public PersonContactInfoResponse getPersonContactInfo(@PathVariable("id") int id) {
 
 		if (peopleService.findOne(id) == null) {
 			throw new PersonNotFoundException("Person with this id is not found!");
 		}
 
-		return peopleService.convertToPersonContactInfoDTO(peopleService.findOne(id));
+		return peopleService.getPersonContactInfoResponse(id);
 	}
 
 	@PostMapping("/get/detailed_info/{id}")
-	public PersonDetailedInfoDTO getPersonDetailedInfo(@PathVariable("id") int id) {
+	public PersonDetailedInfoResponse getPersonDetailedInfo(@PathVariable("id") int id) {
 
 		if (peopleService.findOne(id) == null) {
 			throw new PersonNotFoundException("Person with this id is not found!");
 		}
 
-		return peopleService.convertToPersonDetailedInfoDTO(peopleService.findOne(id));
+		return peopleService.getPersonDetailedInfoResponse(id);
 	}
 
 	@PostMapping("/get/photo/{id}")
@@ -153,54 +142,50 @@ public class PeopleController {
 	}
 
 	@PostMapping("/get/{id}")
-	public PersonDTO getPerson(@PathVariable("id") int id) {
+	public PersonResponse getPerson(@PathVariable("id") int id) {
 
 		if (peopleService.findOne(id) == null) {
 			throw new PersonNotFoundException("Person with this id is not found!");
 		}
-		
-		return peopleService.convertToPersonDTO(peopleService.findOne(id));
+
+		return peopleService.getPersonResponse(id);
 	}
 
 	@PostMapping("/get/detailed_info")
-	public List<PersonDetailedInfoDTO> getPeopleDetailedInfo() {
+	public List<PersonDetailedInfoResponse> getPeopleDetailedInfo() {
 
-		return peopleService.findAll().stream().map(peopleService::convertToPersonDetailedInfoDTO).collect(Collectors
-			.toList());
+		return peopleService.getPersonDetailedInfoResponseList();
 	}
 
 	@PostMapping("/get/contact_info")
-	public List<PersonContactInfoDTO> getPeopleContactInfo() {
+	public List<PersonContactInfoResponse> getPeopleContactInfo() {
 
-		return peopleService.findAll().stream().map(peopleService::convertToPersonContactInfoDTO).collect(Collectors
-			.toList());
+		return peopleService.getPersonContactInfoResponseList();
 	}
 
 	@PostMapping("/get")
-	public List<PersonDTO> getPeople() {
+	public List<PersonResponse> getPeople() {
 
-		return peopleService.findAll().stream().map(peopleService::convertToPersonDTO).collect(Collectors.toList());
+		return peopleService.getPersonResponseList();
 	}
-	
-	
 
 	// UPDATE METHODS
 
 	@PatchMapping("/update/{id}")
-	public ResponseEntity<HttpStatus> updatePerson(@RequestBody @Valid PersonContactInfoDTO personContactInfoDTO,
+	public ResponseEntity<HttpStatus> updatePerson(@RequestBody @Valid PersonContactInfoRequest request,
 		BindingResult bindingResult, @PathVariable("id") int id) {
 
 		if (peopleService.findOne(id) == null) {
 			throw new PersonNotFoundException("Person with this id is not found!");
 		}
 
-		personContactInfoDTOValidator.validate(personContactInfoDTO, bindingResult);
+		personContactInfoDTOValidator.validate(request, bindingResult);
 
 		if (bindingResult.hasErrors()) {
-			throw new NotValidPersonContactInfoDTOException(ErrorMessage.getErrorMessage(bindingResult));
+			throw new NotValidPersonRequestException(ErrorMessage.getErrorMessage(bindingResult));
 		}
 
-		peopleService.updateContactInfo(id, peopleService.convertToPerson(personContactInfoDTO));
+		peopleService.updateContactInfo(id, request);
 
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
@@ -212,19 +197,18 @@ public class PeopleController {
 	 */
 
 	@PatchMapping("/update/detailed_info/{id}")
-	public ResponseEntity<HttpStatus> updatePersonDetailedInfo(
-		@RequestBody @Valid PersonDetailedInfoDTO personDetailedInfoDTO, BindingResult bindingResult,
-		@PathVariable("id") int id) {
+	public ResponseEntity<HttpStatus> updatePersonDetailedInfo(@RequestBody @Valid PersonDetailedInfoRequest request,
+		BindingResult bindingResult, @PathVariable("id") int id) {
 
 		if (peopleService.findOne(id) == null) {
 			throw new PersonNotFoundException("Person with this id is not found!");
 		}
 
 		if (bindingResult.hasErrors()) {
-			throw new NotValidPersonDetailedInfoDTOException(ErrorMessage.getErrorMessage(bindingResult));
+			throw new NotValidPersonRequestException(ErrorMessage.getErrorMessage(bindingResult));
 		}
 
-		peopleService.updateDetailedInfo(id, peopleService.convertToPerson(personDetailedInfoDTO));
+		peopleService.updateDetailedInfo(id, request);
 
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
@@ -244,19 +228,17 @@ public class PeopleController {
 		}
 
 		if (file.getSize() == 0) {
-			throw new NotValidPersonPhotoException("Photo file should not be empty!");
+			throw new NotValidPersonRequestException("Photo file should not be empty!");
 		}
 
 		if (!file.getContentType().equals("image/jpeg") && !file.getContentType().equals("image/png")) {
-			throw new NotValidPersonPhotoException("Only .jpeg and .png files are allowed!");
+			throw new NotValidPersonRequestException("Only .jpeg and .png files are allowed!");
 		}
 
 		peopleService.addPersonPhoto(file.getBytes(), file.getOriginalFilename(), id);
 
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
-	
-	
 
 	// DELETE METHODS
 
@@ -294,54 +276,5 @@ public class PeopleController {
 		peopleService.deletePhoto(id);
 
 		return ResponseEntity.ok(HttpStatus.OK);
-	}
-
-	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleException(PersonNotFoundException ex) {
-
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleException(PersonPhotoNotFoundException ex) {
-
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleException(NotValidPersonContactInfoDTOException ex) {
-
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleException(NotValidPersonDetailedInfoDTOException ex) {
-
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleException(NotValidPersonPhotoException ex) {
-
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	}
-	
-	@ExceptionHandler(SizeLimitExceededException.class)
-	private ResponseEntity<ErrorResponse> handleException(SizeLimitExceededException ex) {
-		
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler
-	private ResponseEntity<ErrorResponse> handleException(IOException ex) {
-
-		ErrorResponse response = new ErrorResponse(ex.getMessage(), System.currentTimeMillis());
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 }

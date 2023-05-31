@@ -17,9 +17,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.igorkayukov.telros.TestTask.dto.AuthDTO;
+import com.igorkayukov.telros.TestTask.dto.Auth.Request.LoginRequest;
 import com.igorkayukov.telros.TestTask.security.JWTUtil;
-import com.igorkayukov.telros.TestTask.validators.AuthDTOValidator;
+import com.igorkayukov.telros.TestTask.validators.AuthRequestValidator;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthControllerTest {
@@ -29,7 +29,7 @@ public class AuthControllerTest {
 	@Mock
 	private AuthenticationManager authenticationManager;
 	@Mock
-	private AuthDTOValidator authDTOValidator;
+	private AuthRequestValidator authDTOValidator;
 
 	@InjectMocks
 	private AuthController authController;
@@ -44,7 +44,7 @@ public class AuthControllerTest {
 	@Test
 	public void performLogin_returnsTokenAndStatus200_whenBindingResultHasNoErrors() throws Exception {
 
-		AuthDTO authDTO = new AuthDTO();
+		LoginRequest authDTO = new LoginRequest();
 		authDTO.setUsername("abc");
 		authDTO.setPassword("abc");
 
@@ -65,7 +65,7 @@ public class AuthControllerTest {
 	@Test
 	public void performLogin_returnsErrorResponse_whenBindingResultHasErrors() throws Exception {
 
-		AuthDTO authDTO = new AuthDTO();
+		LoginRequest authDTO = new LoginRequest();
 
 		String json = new ObjectMapper().writeValueAsString(authDTO);
 
