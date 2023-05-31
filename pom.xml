@@ -9,11 +9,11 @@
 		<version>2.7.11</version>
 		<relativePath />
 	</parent>
-	<groupId>com.igorkayukov.telros</groupId>
-	<artifactId>TestTask</artifactId>
+	<groupId>com.hoshblok.ContactsAPI</groupId>
+	<artifactId>ContactsAPI</artifactId>
 	<version>1.0</version>
-	<name>TestTask</name>
-	<description>Test task for a vacancy</description>
+	<name>ContactsAPI</name>
+	<description>ContactsAPI service</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
