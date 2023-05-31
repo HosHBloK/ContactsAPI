@@ -1,7 +1,6 @@
 package com.hoshblok.ContactsAPI.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -10,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -31,10 +29,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hoshblok.ContactsAPI.controllers.PeopleController;
-import com.hoshblok.ContactsAPI.dto.Person.Request.PersonContactInfoRequest;
-import com.hoshblok.ContactsAPI.dto.Person.Request.PersonDetailedInfoRequest;
-import com.hoshblok.ContactsAPI.dto.Person.Response.PersonResponse;
+import com.hoshblok.ContactsAPI.dto.person.request.PersonContactInfoRequest;
+import com.hoshblok.ContactsAPI.dto.person.request.PersonDetailedInfoRequest;
+import com.hoshblok.ContactsAPI.dto.person.response.PersonContactInfoResponse;
+import com.hoshblok.ContactsAPI.dto.person.response.PersonDetailedInfoResponse;
+import com.hoshblok.ContactsAPI.dto.person.response.PersonResponse;
+import com.hoshblok.ContactsAPI.errors.GlobalExceptionHandler;
 import com.hoshblok.ContactsAPI.models.Person;
 import com.hoshblok.ContactsAPI.services.PeopleService;
 import com.hoshblok.ContactsAPI.validators.PersonContactInfoRequestValidator;
@@ -45,7 +45,7 @@ public class PeopleControllerTest {
 	@Mock
 	private PeopleService peopleService;
 	@Mock
-	private PersonContactInfoRequestValidator personContactInfoDTOValidator;
+	private PersonContactInfoRequestValidator validator;
 
 	@InjectMocks
 	private PeopleController peopleController;
@@ -54,7 +54,8 @@ public class PeopleControllerTest {
 
 	@BeforeEach
 	private void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(peopleController).build();
+		mockMvc = MockMvcBuilders.standaloneSetup(peopleController).setControllerAdvice(GlobalExceptionHandler.class)
+			.build();
 	}
 
 	// ADD TESTS
@@ -62,9 +63,9 @@ public class PeopleControllerTest {
 	@Test
 	public void addPerson_returnsOk_whenBindingResultHasNoErrors() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest("abc", "abc@abc", "123");
+		PersonContactInfoRequest request = new PersonContactInfoRequest("abc", "abc@abc", "123");
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(post("/people/add")
@@ -78,9 +79,9 @@ public class PeopleControllerTest {
 	@Test
 	public void addPerson_returnsErrorResponse_whenBindingResultHasErrors() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest();
+		PersonContactInfoRequest request = new PersonContactInfoRequest();
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(post("/people/add")
@@ -95,11 +96,11 @@ public class PeopleControllerTest {
 	@Test
 	public void addPersonDetailedInfo_returnsOk_whenBindingResultHasNoErrors() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest("abc", "abc", "2000-01-01");
+		PersonDetailedInfoRequest request = new PersonDetailedInfoRequest("abc", "abc", "2000-01-01");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(post("/people/add/detailed_info/1")
@@ -113,9 +114,9 @@ public class PeopleControllerTest {
 	@Test
 	public void addPersonDetailedInfo_returnsErrorResponse_whenNoPersonWithGivenId() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest();
+		PersonDetailedInfoRequest request = new PersonDetailedInfoRequest();
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(post("/people/add/detailed_info/1")
@@ -130,11 +131,11 @@ public class PeopleControllerTest {
 	@Test
 	public void addPersonDetailedInfo_returnsErrorResponse_whenBindingResultHasErrors() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest();
+		PersonDetailedInfoRequest request = new PersonDetailedInfoRequest();
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(post("/people/add/detailed_info/1")
@@ -212,10 +213,11 @@ public class PeopleControllerTest {
 	@Test
 	public void getPersonContactInfo_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest("abc", "abc@abc", "123");
+		PersonContactInfoResponse response = new PersonContactInfoResponse("abc", "abc@abc", "123");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
-		Mockito.when(peopleService.convertToPersonContactInfoResponse(any(Person.class))).thenReturn(dto);
+
+		Mockito.when(peopleService.getPersonContactInfoResponse(anyInt())).thenReturn(response);
 
 		//@formatter:off 
 		 MvcResult result = mockMvc.perform(post("/people/get/contact_info/1"))
@@ -224,8 +226,9 @@ public class PeopleControllerTest {
 		 //@formatter:on
 
 		String responseBody = result.getResponse().getContentAsString();
-		PersonContactInfoRequest response = new ObjectMapper().readValue(responseBody, PersonContactInfoRequest.class);
-		assertEquals(dto.toString(), response.toString());
+		PersonContactInfoRequest Actualresponse = new ObjectMapper().readValue(responseBody,
+			PersonContactInfoRequest.class);
+		assertEquals(response.toString(), Actualresponse.toString());
 	}
 
 	@Test
@@ -284,10 +287,11 @@ public class PeopleControllerTest {
 	@Test
 	public void getPersonDetailedInfo_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest("abc", "abc", "2000-01-01");
+		PersonDetailedInfoResponse response = new PersonDetailedInfoResponse("abc", "abc", "2000-01-01");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
-		Mockito.when(peopleService.convertToPersonDetailedInfoResponse(any(Person.class))).thenReturn(dto);
+
+		Mockito.when(peopleService.getPersonDetailedInfoResponse(anyInt())).thenReturn(response);
 
 		//@formatter:off 
 		 MvcResult result = mockMvc.perform(post("/people/get/detailed_info/1"))
@@ -296,8 +300,9 @@ public class PeopleControllerTest {
 		 //@formatter:on
 
 		String responseBody = result.getResponse().getContentAsString();
-		PersonDetailedInfoRequest response = new ObjectMapper().readValue(responseBody, PersonDetailedInfoRequest.class);
-		assertEquals(dto.toString(), response.toString());
+		PersonDetailedInfoRequest Actualresponse = new ObjectMapper().readValue(responseBody,
+			PersonDetailedInfoRequest.class);
+		assertEquals(response.toString(), Actualresponse.toString());
 	}
 
 	@Test
@@ -314,10 +319,11 @@ public class PeopleControllerTest {
 	@Test
 	public void getPerson_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonResponse dto = new PersonResponse(1, "abc", "abc", "abc", Date.from(Instant.now()), "abc", "abc");
+		PersonResponse response = new PersonResponse(1, "abc", "abc", "abc", Date.from(Instant.now()), "abc", "abc");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
-		Mockito.when(peopleService.convertToPersonResponse(any(Person.class))).thenReturn(dto);
+
+		Mockito.when(peopleService.getPersonResponse(anyInt())).thenReturn(response);
 
 		//@formatter:off 
 		 MvcResult result = mockMvc.perform(post("/people/get/1"))
@@ -326,8 +332,8 @@ public class PeopleControllerTest {
 		 //@formatter:on
 
 		String responseBody = result.getResponse().getContentAsString();
-		PersonResponse response = new ObjectMapper().readValue(responseBody, PersonResponse.class);
-		assertEquals(dto.toString(), response.toString());
+		PersonResponse actualResponse = new ObjectMapper().readValue(responseBody, PersonResponse.class);
+		assertEquals(response.toString(), actualResponse.toString());
 	}
 
 	@Test
@@ -344,11 +350,10 @@ public class PeopleControllerTest {
 	@Test
 	public void getPeople_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonResponse dto = new PersonResponse(1, "abc", "abc", "abc", Date.from(Instant.now()), "abc", "abc");
-		List<PersonResponse> expectedList = Arrays.asList(dto);
+		PersonResponse response = new PersonResponse(1, "abc", "abc", "abc", Date.from(Instant.now()), "abc", "abc");
+		List<PersonResponse> expectedList = List.of(response);
 
-		Mockito.when(peopleService.findAll()).thenReturn(List.of(new Person()));
-		Mockito.when(peopleService.convertToPersonResponse(any(Person.class))).thenReturn(dto);
+		Mockito.when(peopleService.getPersonResponseList()).thenReturn(expectedList);
 
 		//@formatter:off 
 		 MvcResult result = mockMvc.perform(post("/people/get"))
@@ -357,19 +362,19 @@ public class PeopleControllerTest {
 		 //@formatter:on
 
 		String responseBody = result.getResponse().getContentAsString();
-		List<PersonResponse> actualList = new ObjectMapper().readValue(responseBody, new TypeReference<List<PersonResponse>>() {
-		});
+		List<PersonResponse> actualList = new ObjectMapper().readValue(responseBody,
+			new TypeReference<List<PersonResponse>>() {
+			});
 		assertEquals(expectedList.get(0).toString(), actualList.get(0).toString());
 	}
 
 	@Test
 	public void getPeopleContactInfo_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest("abc", "abc@abc", "123");
-		List<PersonContactInfoRequest> expectedList = Arrays.asList(dto);
+		PersonContactInfoResponse response = new PersonContactInfoResponse("abc", "abc@abc", "123");
+		List<PersonContactInfoResponse> expectedList = List.of(response);
 
-		Mockito.when(peopleService.findAll()).thenReturn(List.of(new Person()));
-		Mockito.when(peopleService.convertToPersonContactInfoResponse(any(Person.class))).thenReturn(dto);
+		Mockito.when(peopleService.getPersonContactInfoResponseList()).thenReturn(expectedList);
 
 		//@formatter:off 
 		MvcResult result = mockMvc.perform(post("/people/get/contact_info"))
@@ -387,11 +392,10 @@ public class PeopleControllerTest {
 	@Test
 	public void getPeopleDetailedInfo_renturnsJson_whenNoErrors() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest("abc", "abc", "2000-01-01");
-		List<PersonDetailedInfoRequest> expectedList = Arrays.asList(dto);
+		PersonDetailedInfoResponse response = new PersonDetailedInfoResponse("abc", "abc", "2000-01-01");
+		List<PersonDetailedInfoResponse> expectedList = List.of(response);
 
-		Mockito.when(peopleService.findAll()).thenReturn(List.of(new Person()));
-		Mockito.when(peopleService.convertToPersonDetailedInfoResponse(any(Person.class))).thenReturn(dto);
+		Mockito.when(peopleService.getPersonDetailedInfoResponseList()).thenReturn(expectedList);
 
 		//@formatter:off 
 		MvcResult result = mockMvc.perform(post("/people/get/detailed_info"))
@@ -411,11 +415,11 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePerson_returnsOk_whenBindingResultHasNoErrors() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest("abc", "abc@abc", "123");
+		PersonContactInfoRequest request = new PersonContactInfoRequest("abc", "abc@abc", "123");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(patch("/people/update/1")
@@ -429,11 +433,11 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePerson_returnsErrorResponse_whenBindingResultHasErrors() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest();
+		PersonContactInfoRequest request = new PersonContactInfoRequest();
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(patch("/people/update/1")
@@ -448,9 +452,9 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePerson_returnsErrorResponse_whenNoPersonWithGivenId() throws Exception {
 
-		PersonContactInfoRequest dto = new PersonContactInfoRequest();
+		PersonContactInfoRequest request = new PersonContactInfoRequest();
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(patch("/people/update/1")
@@ -526,11 +530,11 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePersonDetailedInfo_returnsOk_whenBindingResultHasNoErrors() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest("abc", "abc", "2000-01-01");
+		PersonDetailedInfoRequest request = new PersonDetailedInfoRequest("abc", "abc", "2000-01-01");
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(patch("/people/update/detailed_info/1")
@@ -544,9 +548,9 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePersonDetailedInfo_returnsErrorResponse_whenNoPersonWithGivenId() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest();
+		PersonDetailedInfoRequest request = new PersonDetailedInfoRequest();
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(patch("/people/update/detailed_info/1")
@@ -561,11 +565,11 @@ public class PeopleControllerTest {
 	@Test
 	public void updatePersonDetailedInfo_returnsErrorResponse_whenBindingResultHasErrors() throws Exception {
 
-		PersonDetailedInfoRequest dto = new PersonDetailedInfoRequest();
+		PersonDetailedInfoRequest request = new PersonDetailedInfoRequest();
 
 		Mockito.when(peopleService.findOne(anyInt())).thenReturn(new Person());
 
-		String json = new ObjectMapper().writeValueAsString(dto);
+		String json = new ObjectMapper().writeValueAsString(request);
 
 		//@formatter:off 
 		mockMvc.perform(patch("/people/update/detailed_info/1")
@@ -645,5 +649,4 @@ public class PeopleControllerTest {
 		.andExpect(jsonPath("$.timestamp").exists());
 		//@formatter:on
 	}
-
 }
