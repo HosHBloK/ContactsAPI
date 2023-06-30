@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  api:
+    image: hoshblok/contacts-api-backend
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: 
+      DB_PORT: 
+      DB_PATH: 
+      DB_NAME: 
+      DB_USERNAME: 
+      DB_PASSWORD: 
+      JWT_SECRET: 
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 
+      POSTGRES_DB: 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - '5555:8080'
+volumes:
+  postgres_data:

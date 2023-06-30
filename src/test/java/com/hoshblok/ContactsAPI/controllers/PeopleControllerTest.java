@@ -226,8 +226,8 @@ public class PeopleControllerTest {
 		 //@formatter:on
 
 		String responseBody = result.getResponse().getContentAsString();
-		PersonContactInfoRequest Actualresponse = new ObjectMapper().readValue(responseBody,
-			PersonContactInfoRequest.class);
+		PersonContactInfoResponse Actualresponse = new ObjectMapper().readValue(responseBody,
+			PersonContactInfoResponse.class);
 		assertEquals(response.toString(), Actualresponse.toString());
 	}
 
@@ -300,8 +300,8 @@ public class PeopleControllerTest {
 		 //@formatter:on
 
 		String responseBody = result.getResponse().getContentAsString();
-		PersonDetailedInfoRequest Actualresponse = new ObjectMapper().readValue(responseBody,
-			PersonDetailedInfoRequest.class);
+		PersonDetailedInfoResponse Actualresponse = new ObjectMapper().readValue(responseBody,
+			PersonDetailedInfoResponse.class);
 		assertEquals(response.toString(), Actualresponse.toString());
 	}
 

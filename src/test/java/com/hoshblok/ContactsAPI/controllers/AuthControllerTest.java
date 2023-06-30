@@ -36,7 +36,7 @@ public class AuthControllerTest {
 	@Mock
 	private AuthenticationManager authenticationManager;
 	@Mock
-	private AuthRequestValidator authDTOValidator;
+	private AuthRequestValidator authRequestValidator;
 	@Mock
 	private AuthService authService;
 
